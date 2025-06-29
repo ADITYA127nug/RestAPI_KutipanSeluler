@@ -2,12 +2,11 @@
 
 namespace App\Controllers;
 
-use CodeIgniter\HTTP\ResponseInterface;
 use CodeIgniter\RESTful\ResourceController;
 
 class Users extends ResourceController
 {
-      protected $modelName = 'App\Models\UserModel';
+    protected $modelName = 'App\Models\UserModel';
     protected $format    = 'json';
 
     public function index()
@@ -21,21 +20,23 @@ class Users extends ResourceController
         if (!$data) {
             return $this->failNotFound('User dengan ID ' . $id . ' tidak ditemukan.');
         }
+
+        unset($data->user_password); // Jangan tampilkan hash password
         return $this->respond($data);
     }
 
-  public function create()
-{
-    // Mengambil data dari x-www-form-urlencoded
-    $data = $this->request->getPost();
+    // Berfungsi sebagai 'register'
+    public function create()
+    {
+        // PERBAIKAN: Ubah kembali ke getJSON(true) untuk menerima data dari Flutter
+    $data = $this->request->getJSON(true);
 
-    // Pastikan data tidak kosong
     if (empty($data)) {
         return $this->fail('Tidak ada data yang dikirim.', 400);
     }
-    
-    // Hash password sebelum dikirim ke model
-    if (!empty($data['user_password'])) {
+
+    // Logika hashing password tetap sama
+    if (isset($data['user_password'])) {
         $data['user_password'] = password_hash($data['user_password'], PASSWORD_DEFAULT);
     }
 
@@ -43,33 +44,41 @@ class Users extends ResourceController
         return $this->fail($this->model->errors());
     }
     
+    $newUser = $this->model->find($this->model->getInsertID());
+    unset($newUser->user_password);
+
     return $this->respondCreated([
-        'status' => 201, 
+        'status'  => 201,
         'message' => 'User berhasil dibuat',
-        'data' => $this->model->find($this->model->getInsertID())
+        'data'    => $newUser
     ]);
-}
+    }
+
     public function update($id = null)
     {
         if ($this->model->find($id) === null) {
             return $this->failNotFound('User dengan ID ' . $id . ' tidak ditemukan.');
         }
 
-        $data = $this->request->getPost(true);
+        $data = $this->request->getJSON(true);
 
-        // Jika ada password baru, hash terlebih dahulu
         if (!empty($data['user_password'])) {
             $data['user_password'] = password_hash($data['user_password'], PASSWORD_DEFAULT);
+        } else {
+            unset($data['user_password']);
         }
 
         if ($this->model->update($id, $data) === false) {
             return $this->fail($this->model->errors());
         }
+        
+        $updatedUser = $this->model->find($id);
+        unset($updatedUser->user_password);
 
         return $this->respond([
-            'status' => 200, 
+            'status'  => 200,
             'message' => 'User berhasil diperbarui',
-            'data' => $this->model->find($id)
+            'data'    => $updatedUser
         ]);
     }
 
@@ -80,5 +89,29 @@ class Users extends ResourceController
         }
         $this->model->delete($id);
         return $this->respondDeleted(['status' => 200, 'message' => 'User berhasil dihapus.']);
+    }
+
+    // Fungsi untuk Login User
+    public function login()
+    {
+        $data = $this->request->getJSON();
+
+        if (!isset($data->user_email) || !isset($data->user_password)) {
+            return $this->fail('Email dan password harus diisi.', 400);
+        }
+
+        $user = $this->model->where('user_email', $data->user_email)->first();
+
+        if ($user && password_verify($data->user_password, $user->user_password)) {
+            unset($user->user_password);
+
+            return $this->respond([
+                'status'  => 200,
+                'message' => 'Login berhasil',
+                'data'    => $user
+            ]);
+        }
+
+        return $this->failUnauthorized('Email atau Password salah');
     }
 }

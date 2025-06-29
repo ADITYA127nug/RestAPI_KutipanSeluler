@@ -2,13 +2,43 @@
 
 namespace App\Controllers;
 
-use CodeIgniter\HTTP\ResponseInterface;
 use CodeIgniter\RESTful\ResourceController;
 
 class Authors extends ResourceController
 {
     protected $modelName = 'App\Models\AuthorModel';
     protected $format    = 'json';
+
+    public function login()
+    {
+        $json = $this->request->getJSON();
+        $email = $json->email ?? null;
+        $password = $json->password ?? null;
+
+        if (!$email || !$password) {
+            return $this->failValidationErrors('Email dan password wajib diisi');
+        }
+
+        $author = $this->model->where('author_email', $email)->first();
+
+        if (!$author) {
+            return $this->failNotFound('Email tidak ditemukan');
+        }
+
+        $authorData = $author->toRawArray();
+
+        if ($authorData['author_password'] !== $password) {
+            return $this->failUnauthorized('Password salah');
+        }
+
+        unset($authorData['author_password']); // hapus password dari response
+
+        return $this->respond([
+            'status' => 200,
+            'message' => 'Login berhasil, selamat datang ' . $authorData['author_name'] . '!',
+            'data' => $authorData
+        ]);
+    }
 
     public function index()
     {
@@ -19,51 +49,48 @@ class Authors extends ResourceController
     {
         $data = $this->model->find($id);
         if (!$data) {
-            return $this->failNotFound('Author dengan ID ' . $id . ' tidak ditemukan.');
+            return $this->failNotFound("Author dengan ID $id tidak ditemukan.");
         }
         return $this->respond($data);
     }
 
     public function create()
     {
-        $data = $this->request->getJSON(true);
+        $json = $this->request->getJSON();
+    if (!$this->model->insert($json)) {
+        return $this->failValidationErrors($this->model->errors());
+    }
 
-        if ($this->model->insert($data) === false) {
-            return $this->fail($this->model->errors());
-        }
-        
-        return $this->respondCreated([
-            'status' => 201, 
-            'message' => 'Author berhasil dibuat',
-            'data' => $this->model->find($this->model->getInsertID())
-        ]);
+    return $this->respondCreated([
+        'status' => 201,
+        'message' => 'Author berhasil ditambahkan',
+        'data' => $json
+    ]);
     }
 
     public function update($id = null)
     {
-        if ($this->model->find($id) === null) {
-            return $this->failNotFound('Author dengan ID ' . $id . ' tidak ditemukan.');
-        }
-
-        $data = $this->request->getJSON(true);
-
-        if ($this->model->update($id, $data) === false) {
-            return $this->fail($this->model->errors());
+        $json = $this->request->getJSON();
+        if (!$this->model->update($id, $json)) {
+            return $this->failValidationErrors($this->model->errors());
         }
 
         return $this->respond([
-            'status' => 200, 
-            'message' => 'Author berhasil diperbarui',
-            'data' => $this->model->find($id)
+            'status' => 200,
+            'message' => 'Author berhasil diupdate',
+            'data' => $json
         ]);
     }
 
     public function delete($id = null)
     {
-        if ($this->model->find($id) === null) {
-            return $this->failNotFound('Author dengan ID ' . $id . ' tidak ditemukan.');
+        if (!$this->model->delete($id)) {
+            return $this->failNotFound("Author dengan ID $id tidak ditemukan atau gagal dihapus.");
         }
-        $this->model->delete($id);
-        return $this->respondDeleted(['status' => 200, 'message' => 'Author berhasil dihapus.']);
+
+        return $this->respondDeleted([
+            'status' => 200,
+            'message' => 'Author berhasil dihapus'
+        ]);
     }
 }

@@ -6,19 +6,21 @@ use CodeIgniter\Router\RouteCollection;
  * @var RouteCollection $routes
  */
 $routes->get('/', 'Home::index');
-// Membuat semua rute RESTful untuk QuotesController
+
+// Taruh route custom **sebelum** resource agar tidak override
+$routes->post('authors/login', 'Authors::login');
+
+// RESTful resources
 $routes->resource('quotes');
-
-// Membuat semua rute RESTful untuk AuthorsController
 $routes->resource('authors');
-
-// Membuat semua rute RESTful untuk UsersController
 $routes->resource('users');
-
-// Membuat semua rute RESTful untuk KategoriController
 $routes->resource('kategori');
-
-// Membuat semua rute RESTful untuk TagsController
 $routes->resource('tags');
 
-// ==================================================
+// $routes->post('authors/login', 'Authors::login');
+// $routes->resource('authors');
+
+// app/Config/Routes.php
+
+// $routes->resource('users');
+$routes->post('users/login', 'Users::login'); // <-- Tambahkan ini
