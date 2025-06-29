@@ -11,14 +11,22 @@ class UserModel extends Model
     protected $returnType       = 'App\Entities\User';
     protected $useTimestamps    = true;
     
-    protected $allowedFields    = ['user_name', 'user_email', 'user_password'];
+    protected $allowedFields = [
+    'author_name',
+    'author_email',
+    'author_password', // WAJIB ditambahkan
+    'author_photo',
+    'description',
+];
+
 
     // Aturan Validasi
     protected $validationRules = [
-        'user_name'     => 'required|min_length[3]|max_length[100]',
-        'user_email'    => 'required|valid_email|is_unique[users.user_email,user_id,{id}]',
-        'user_password' => 'required|min_length[8]',
-    ];
+    'user_name'     => 'required|min_length[3]|max_length[100]',
+    'user_email'    => 'required|valid_email|is_unique[users.user_email]',
+    'user_password' => 'required|min_length[8]',
+];
+
 
     // Pesan Error Kustom untuk Validasi
     protected $validationMessages = [

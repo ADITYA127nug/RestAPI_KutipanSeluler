@@ -15,13 +15,18 @@ class Authors extends ResourceController
         return $this->respond($this->model->findAll());
     }
 
-    public function show($id = null)
+     public function show($id = null)
     {
-        $data = $this->model->find($id);
-        if (!$data) {
-            return $this->failNotFound('Author dengan ID ' . $id . ' tidak ditemukan.');
+        $author = $this->model->find($id);
+
+        if (!$author) {
+            return $this->failNotFound('Author tidak ditemukan.');
         }
-        return $this->respond($data);
+
+        return $this->respond([
+            'status' => 200,
+            'data' => $author
+        ]);
     }
 
     public function create()

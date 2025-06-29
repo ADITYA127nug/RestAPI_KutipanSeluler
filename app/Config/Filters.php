@@ -3,7 +3,7 @@
 namespace Config;
 
 use CodeIgniter\Config\Filters as BaseFilters;
-use CodeIgniter\Filters\Cors;
+use App\Filters\Cors;
 use CodeIgniter\Filters\CSRF;
 use CodeIgniter\Filters\DebugToolbar;
 use CodeIgniter\Filters\ForceHTTPS;
@@ -69,11 +69,13 @@ class Filters extends BaseFilters
      */
     public array $globals = [
         'before' => [
+            'cors', 
             // 'honeypot',
             // 'csrf',
             // 'invalidchars',
         ],
         'after' => [
+             'toolbar',
             // 'honeypot',
             // 'secureheaders',
         ],
