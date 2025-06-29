@@ -9,7 +9,7 @@ class Authors extends ResourceController
 {
     protected $modelName = 'App\Models\AuthorModel';
     protected $format    = 'json';
-
+    
     public function index()
     {
         return $this->respond($this->model->findAll());

@@ -22,3 +22,10 @@ $routes->resource('kategori');
 $routes->resource('tags');
 
 // ==================================================
+
+$routes->post('auth/register-user', 'AuthController::registerUser');
+$routes->post('auth/login-user', 'AuthController::loginUser');
+$routes->post('auth/register-author', 'AuthController::registerAuthor');
+$routes->post('auth/login-author', 'AuthController::loginAuthor');
+
+
