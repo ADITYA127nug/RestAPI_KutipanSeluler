@@ -8,6 +8,7 @@ class Authors extends ResourceController
 {
     protected $modelName = 'App\Models\AuthorModel';
     protected $format    = 'json';
+<<<<<<< HEAD
 
     public function login()
     {
@@ -40,18 +41,32 @@ class Authors extends ResourceController
         ]);
     }
 
+=======
+    
+>>>>>>> b5d9b63d889fcea0773916f26398181fca7aab2b
     public function index()
     {
         return $this->respond($this->model->findAll());
     }
 
-    public function show($id = null)
+     public function show($id = null)
     {
+<<<<<<< HEAD
         $data = $this->model->find($id);
         if (!$data) {
             return $this->failNotFound("Author dengan ID $id tidak ditemukan.");
+=======
+        $author = $this->model->find($id);
+
+        if (!$author) {
+            return $this->failNotFound('Author tidak ditemukan.');
+>>>>>>> b5d9b63d889fcea0773916f26398181fca7aab2b
         }
-        return $this->respond($data);
+
+        return $this->respond([
+            'status' => 200,
+            'data' => $author
+        ]);
     }
 
     public function create()
