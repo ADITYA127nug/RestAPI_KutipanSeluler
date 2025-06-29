@@ -66,33 +66,32 @@ class AuthController extends ResourceController
     ]);
 }
 
-
 public function registerAuthor()
 {
-    $data = $this->request->getJSON(true);
+    $data = $this->request->getJSON(); // pakai object
 
-    // Validasi manual jika perlu
-    if (empty($data['author_name']) || empty($data['author_email']) || empty($data['author_password'])) {
+    $author_name = $data->author_name ?? '';
+    $author_email = $data->author_email ?? '';
+    $author_password = $data->author_password ?? '';
+
+    if (empty($author_name) || empty($author_email) || empty($author_password)) {
         return $this->fail('Field author_name, author_email, dan author_password wajib diisi.', 400);
     }
 
     $model = new AuthorModel();
 
-    // Cek email sudah terdaftar
-    if ($model->where('author_email', $data['author_email'])->first()) {
+    if ($model->where('author_email', $author_email)->first()) {
         return $this->fail('Email sudah terdaftar.', 409);
     }
 
-    // Siapkan data
     $authorData = [
-        'author_name'     => $data['author_name'],
-        'author_email'    => $data['author_email'],
-        'author_password' => password_hash($data['author_password'], PASSWORD_DEFAULT),
+        'author_name'     => $author_name,
+        'author_email'    => $author_email,
+        'author_password' => password_hash($author_password, PASSWORD_DEFAULT),
         'author_photo'    => null,
         'description'     => null,
     ];
 
-    // Simpan data
     if (!$model->insert($authorData)) {
         return $this->fail($model->errors());
     }
@@ -106,9 +105,6 @@ public function registerAuthor()
         'data'    => $newAuthor
     ]);
 }
-
-
-
 
 
     // Login Author

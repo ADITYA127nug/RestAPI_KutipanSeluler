@@ -6,29 +6,25 @@ use CodeIgniter\Model;
 
 class UserModel extends Model
 {
-     protected $table            = 'users';
-    protected $primaryKey       = 'user_id';
+    protected $table            = 'users';
+    protected $primaryKey       = 'user_id'; // pastikan di DB juga 'user_id'
     protected $returnType       = 'App\Entities\User';
     protected $useTimestamps    = true;
-    
+
     protected $allowedFields = [
-    'author_name',
-    'author_email',
-    'author_password', // WAJIB ditambahkan
-    'author_photo',
-    'description',
-];
+        'user_name',
+        'user_email',
+        'user_password',
+        'user_photo',   // kalau ada di tabel
+        'description',  // kalau ada di tabel
+    ];
 
-
-    // Aturan Validasi
     protected $validationRules = [
-    'user_name'     => 'required|min_length[3]|max_length[100]',
-    'user_email'    => 'required|valid_email|is_unique[users.user_email]',
-    'user_password' => 'required|min_length[8]',
-];
+        'user_name'     => 'required|min_length[3]|max_length[100]',
+        'user_email'    => 'required|valid_email|is_unique[users.user_email]',
+        'user_password' => 'required|min_length[8]',
+    ];
 
-
-    // Pesan Error Kustom untuk Validasi
     protected $validationMessages = [
         'user_email' => [
             'is_unique'   => 'Maaf, email tersebut sudah terdaftar. Silakan gunakan email lain.',
