@@ -8,59 +8,60 @@ class Authors extends ResourceController
 {
     protected $modelName = 'App\Models\AuthorModel';
     protected $format    = 'json';
-<<<<<<< HEAD
 
     public function login()
     {
+        // 1. Dapatkan input JSON dari Flutter
         $json = $this->request->getJSON();
         $email = $json->email ?? null;
         $password = $json->password ?? null;
 
+        // 2. Validasi input dasar
         if (!$email || !$password) {
-            return $this->failValidationErrors('Email dan password wajib diisi');
+            return $this->fail('Email dan password wajib diisi.', 400);
         }
 
-        $author = $this->model->where('author_email', $email)->first();
+        // 3. Cari author berdasarkan email menggunakan model
+        //    Model akan mengembalikan sebuah objek Entity karena $returnType di model Anda
+        $authorEntity = $this->model->where('author_email', $email)->first();
 
-        if (!$author) {
-            return $this->failNotFound('Email tidak ditemukan');
+        if (!$authorEntity) {
+            return $this->failNotFound('Email tidak ditemukan.');
         }
 
-        $authorData = $author->toRawArray();
-
-        if ($authorData['author_password'] !== $password) {
-            return $this->failUnauthorized('Password salah');
+        // 4. Verifikasi password dengan aman menggunakan password_verify()
+        //    Ini membandingkan password dari Flutter dengan hash di database.
+        //    Asumsi: Model Anda mengembalikan Entity, jadi kita akses propertinya.
+        if (!password_verify($password, $authorEntity->author_password)) {
+            return $this->failUnauthorized('Password salah.');
         }
 
-        unset($authorData['author_password']); // hapus password dari response
+        // 5. Jika login berhasil, siapkan data untuk dikirim kembali
+        //    Gunakan toArray() untuk mengubah Entity menjadi array
+        $authorData = $authorEntity->toArray();
+        
+        // Hapus password dari data yang akan dikirim kembali untuk keamanan
+        unset($authorData['author_password']);
 
+        // 6. Kirim respons yang sesuai dengan yang diharapkan oleh Flutter
         return $this->respond([
-            'status' => 200,
+            'status'  => 'success', // Flutter mengharapkan 'success', bukan 200
             'message' => 'Login berhasil, selamat datang ' . $authorData['author_name'] . '!',
-            'data' => $authorData
+            'data'    => $authorData
         ]);
     }
 
-=======
-    
->>>>>>> b5d9b63d889fcea0773916f26398181fca7aab2b
     public function index()
     {
         return $this->respond($this->model->findAll());
     }
 
-     public function show($id = null)
+    public function show($id = null)
     {
-<<<<<<< HEAD
-        $data = $this->model->find($id);
-        if (!$data) {
-            return $this->failNotFound("Author dengan ID $id tidak ditemukan.");
-=======
         $author = $this->model->find($id);
 
         if (!$author) {
-            return $this->failNotFound('Author tidak ditemukan.');
->>>>>>> b5d9b63d889fcea0773916f26398181fca7aab2b
+            return $this->failNotFound("Author dengan ID $id tidak ditemukan.");
         }
 
         return $this->respond([
@@ -71,36 +72,53 @@ class Authors extends ResourceController
 
     public function create()
     {
-        $json = $this->request->getJSON();
-    if (!$this->model->insert($json)) {
-        return $this->failValidationErrors($this->model->errors());
-    }
+        $json = $this->request->getJSON(true); // Ambil sebagai array
 
-    return $this->respondCreated([
-        'status' => 201,
-        'message' => 'Author berhasil ditambahkan',
-        'data' => $json
-    ]);
+        // Hash password sebelum disimpan ke database
+        if (isset($json['author_password'])) {
+            $json['author_password'] = password_hash($json['author_password'], PASSWORD_DEFAULT);
+        }
+
+        if (!$this->model->insert($json)) {
+            return $this->failValidationErrors($this->model->errors());
+        }
+
+        return $this->respondCreated([
+            'status' => 201,
+            'message' => 'Author berhasil ditambahkan'
+        ]);
     }
 
     public function update($id = null)
     {
-        $json = $this->request->getJSON();
+        $json = $this->request->getJSON(true); // Ambil sebagai array
+
+        // Jika ada password baru, hash password tersebut
+        if (isset($json['author_password']) && !empty($json['author_password'])) {
+            $json['author_password'] = password_hash($json['author_password'], PASSWORD_DEFAULT);
+        } else {
+            // Jangan update password jika kosong
+            unset($json['author_password']);
+        }
+
         if (!$this->model->update($id, $json)) {
             return $this->failValidationErrors($this->model->errors());
         }
 
         return $this->respond([
             'status' => 200,
-            'message' => 'Author berhasil diupdate',
-            'data' => $json
+            'message' => 'Author berhasil diupdate'
         ]);
     }
 
     public function delete($id = null)
     {
+        if (!$this->model->find($id)) {
+            return $this->failNotFound("Author dengan ID $id tidak ditemukan.");
+        }
+        
         if (!$this->model->delete($id)) {
-            return $this->failNotFound("Author dengan ID $id tidak ditemukan atau gagal dihapus.");
+            return $this->fail('Gagal menghapus author.', 500);
         }
 
         return $this->respondDeleted([
