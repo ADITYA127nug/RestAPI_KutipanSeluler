@@ -21,9 +21,7 @@ class AuthController extends ResourceController
 
     $model = new UserModel();
     $existing = $model->where('user_email', $data['user_email'])->first();
-    if ($existing) {
-        return $this->fail('Email sudah terdaftar.', 409);
-    }
+
 
     $data['user_password'] = password_hash($data['user_password'], PASSWORD_DEFAULT);
 
@@ -65,10 +63,17 @@ class AuthController extends ResourceController
         'data' => $user
     ]);
 }
+<<<<<<< HEAD
 
 public function registerAuthor()
 {
     $data = $this->request->getJSON(); // pakai object
+=======
+// register Author
+public function registerAuthor()
+{
+    $data = $this->request->getJSON(); // object
+>>>>>>> a7b94ba (Update controller, model, and routes for quote & author)
 
     $author_name = $data->author_name ?? '';
     $author_email = $data->author_email ?? '';
@@ -97,12 +102,15 @@ public function registerAuthor()
     }
 
     $newAuthor = $model->find($model->getInsertID());
-    unset($newAuthor['author_password']);
+
+    // ✅ convert to array
+    $newAuthorArray = $newAuthor->toArray();
+    unset($newAuthorArray['author_password']);
 
     return $this->respondCreated([
         'status'  => 201,
         'message' => 'Author berhasil terdaftar',
-        'data'    => $newAuthor
+        'data'    => $newAuthorArray
     ]);
 }
 
@@ -119,17 +127,77 @@ public function loginAuthor()
         return $this->fail('Email dan password wajib diisi.', 400);
     }
 
-    $model = new AuthorModel();
+    $model = new \App\Models\AuthorModel();
     $author = $model->where('author_email', $email)->first();
 
-    if (!$author || !password_verify($password, $author->author_password)) {
-        return $this->failUnauthorized('Email atau password salah.');
+    if (!$author) {
+        return $this->failUnauthorized('Email tidak ditemukan.');
     }
+
+    if (!password_verify($password, $author->author_password)) {
+        return $this->failUnauthorized('Password salah.');
+    }
+
+    // ✅ Konversi object ke array agar aman digunakan
+    $authorArray = $author->toArray();
+
+    // Hapus password dari response
+    unset($authorArray['author_password']);
 
     return $this->respond([
         'status' => 200,
         'message' => 'Login author berhasil',
-        'data' => $author->toArray(), // konversi Entity jadi array
+        'data' => $authorArray
+    ]);
+}
+
+
+
+
+// Profile Author
+public function profile($id = null)
+{
+    if (!$id) {
+        return $this->fail('ID author diperlukan.', 400);
+    }
+
+    $model = new \App\Models\AuthorModel();
+    $author = $model->find($id);
+
+    if (!$author) {
+        return $this->failNotFound('Author tidak ditemukan.');
+    }
+
+    unset($author['author_password']); // Jangan kirim password
+
+    return $this->respond([
+        'status' => 200,
+        'message' => 'Berhasil ambil data profil',
+        'data' => $author
+    ]);
+}
+// Profile User
+public function profileUser($id = null)
+{
+    if (!$id) {
+        return $this->fail('ID user diperlukan.', 400);
+    }
+
+    $model = new \App\Models\UserModel();
+    $user = $model->find($id);
+
+    if (!$user) {
+        return $this->failNotFound('User tidak ditemukan.');
+    }
+
+    // Konversi entity ke array
+    $userArray = $user->toArray();
+    unset($userArray['user_password']);
+
+    return $this->respond([
+        'status' => 200,
+        'message' => 'Berhasil ambil data profil user',
+        'data' => $userArray
     ]);
 }
 

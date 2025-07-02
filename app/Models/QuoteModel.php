@@ -8,17 +8,27 @@ class QuoteModel extends Model
 {
    protected $table            = 'quotes';
     protected $primaryKey       = 'quote_id';
-    protected $returnType       = 'App\Entities\Quote';
+    protected $returnType       = 'array';
     protected $useTimestamps    = true;
     
-    protected $allowedFields    = ['author_id', 'kategori_id', 'user_id', 'quotes_title', 'quotes_comment', 'quotes_photo'];
+    protected $allowedFields = [
+        'quotes_title',
+        'quotes_comment',
+        'kategori_id',
+        'author_id',
+        'user_id',
+        'quotes_photo',
+        'created_at',
+        'updated_at',
+    ];
+
+    
 
     protected $validationRules = [
-        'author_id'      => 'required|integer|is_not_unique[authors.author_id]',
-        'kategori_id'    => 'required|integer|is_not_unique[kategori.kategori_id]',
-        'user_id'        => 'required|integer|is_not_unique[users.user_id]',
-        'quotes_title'   => 'required|min_length[5]|max_length[255]',
-        'quotes_comment' => 'required|min_length[10]',
+        'quotes_title'   => 'required',
+        'quotes_comment' => 'required',
+        'kategori_id'    => 'required|is_natural_no_zero',
+        'author_id'      => 'required|is_natural_no_zero',
     ];
 
     protected $validationMessages = [

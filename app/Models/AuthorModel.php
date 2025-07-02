@@ -22,10 +22,16 @@ class AuthorModel extends Model
 
     protected $validationRules = [
         'author_name'      => 'required|min_length[3]|max_length[150]',
+<<<<<<< HEAD
         'author_email'     => 'required|valid_email|is_unique[authors.author_email,author_id,{id}]',
         'author_password'  => 'required|min_length[8]',
     ];
 
+=======
+        'author_email'     => 'required|valid_email|is_unique[authors.author_email]',
+        'author_password'  => 'required|min_length[8]',
+    ];
+>>>>>>> a7b94ba (Update controller, model, and routes for quote & author)
 
     protected $validationMessages = [
         'author_email' => [

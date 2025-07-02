@@ -59,6 +59,7 @@ class Authors extends ResourceController
     public function show($id = null)
     {
         $author = $this->model->find($id);
+        $model = new \App\Models\AuthorModel();
 
         if (!$author) {
             return $this->failNotFound("Author dengan ID $id tidak ditemukan.");

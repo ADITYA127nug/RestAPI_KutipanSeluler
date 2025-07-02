@@ -8,10 +8,14 @@ class UserModel extends Model
 {
     protected $table            = 'users';
 <<<<<<< HEAD
+<<<<<<< HEAD
     protected $primaryKey       = 'user_id';
 =======
     protected $primaryKey       = 'user_id'; // pastikan di DB juga 'user_id'
 >>>>>>> b5d9b63d889fcea0773916f26398181fca7aab2b
+=======
+    protected $primaryKey       = 'user_id'; // pastikan di DB juga 'user_id'
+>>>>>>> a7b94ba (Update controller, model, and routes for quote & author)
     protected $returnType       = 'App\Entities\User';
     protected $useTimestamps    = true;
 
